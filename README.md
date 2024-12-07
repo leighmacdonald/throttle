@@ -34,3 +34,12 @@
     15 */3 * * * root /var/www/throttle/app/console.php symbols:update > /dev/null
     30 0 * * * root /var/www/throttle/app/console.php symbols:download > /dev/null
     30 0 * * * root /var/www/throttle/app/console.php symbols:mozilla:download > /dev/null
+
+
+## Docker
+
+    cp app/config.base.php app/config.php
+    vim app/config.php
+    cp docker/example.Caddyfile docker/Caddyfile
+    vim docker/Caddyfile
+    docker compose up

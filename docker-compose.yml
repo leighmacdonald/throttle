@@ -1,0 +1,86 @@
+services:
+  caddy:
+    image: "caddy:2.8"
+    volumes:
+      - http_data:/data
+      - http_config:/config
+      - ./web:/app/web
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    networks:
+      - throttle
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: "."
+      dockerfile: docker/throttle.Dockerfile
+    volumes:
+      - ./docker/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf
+      - throttle_symbols:/app/symbols/public
+      - throttle_logs:/app/logs
+      - throttle_cache:/app/cache
+      - throttle_dumps:/app/dumps
+      - ./app/config.php:/app/app/config.php
+      - /app/vendor
+    ports:
+      - "9000:9000"
+    depends_on:
+      - redis
+      - mariadb
+    networks:
+      - throttle
+    cap_add:
+      - NET_ADMIN
+
+  redis:
+    image: "redis:latest"
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - throttle
+
+  mariadb:
+    # Newer versions of mariadb will not import properly as offset is a reserved word and it doesnt get
+    # quoted properly in the DBAL migrations.
+    # see: https://github.com/doctrine/dbal/pull/5292
+    # todo: Update to DBAL >=3.3.3 and use a newer LTS release, 10.5 drops support in a few months.
+    image: "mariadb:10.5"
+    restart: always
+    volumes:
+      - mariadb_data:/var/lib/mysql:Z
+    ports:
+      - "3306:3306"
+    networks:
+      - throttle
+    environment:
+      MARIADB_ROOT_PASSWORD: throttle
+      MARIADB_AUTO_UPGRADE: true
+      MARIADB_USER: throttle
+      MARIADB_PASSWORD: throttle
+      MARIADB_DATABASE : throttle
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  redis_data:
+  http_data:
+  http_config:
+  mariadb_data:
+  throttle_symbols:
+  throttle_logs:
+  throttle_cache:
+  throttle_dumps:
+
+networks:
+  throttle:

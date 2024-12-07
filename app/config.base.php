@@ -20,10 +20,14 @@ return array_merge($base, array(
         'webmaster@example.com',
     ),
 
-    'db.host' => 'localhost',
+    'db.host' => 'mariadb',
     'db.user' => 'root',
     'db.password' => '',
     'db.name' => 'throttle',
+
+    'redis.host' => 'redis',
+    'redis.port' => '6379',
+    'redis.database' => 1,
 
     'hostname' => 'throttle.example.com',
     'trusted-proxies' => array(),
@@ -33,8 +37,6 @@ return array_merge($base, array(
 
     'apikey' => false,
     'accelerator' => false,
-
-    'show-version' => true,
 
     'symbol-stores' => array(),
 ));

@@ -1,0 +1,5 @@
+* * * * * /app/app/console.php crash:clean > /dev/null; /app/app/console.php crash:process -l 250 -u > /dev/null
+0 * * * * /app/app/console.php user:update > /dev/null
+15 */3 * * * /app/app/console.php symbols:update > /dev/null
+30 0 * * * /app/app/console.php symbols:download > /dev/null
+30 0 * * * /app/app/console.php symbols:mozilla:download > /dev/null

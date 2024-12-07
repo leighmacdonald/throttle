@@ -1,0 +1,13 @@
+crashtest.example.com {
+    root * /app/web/
+    encode zstd gzip
+    php_fastcgi throttle:9000
+
+    # Prevent access to dot-files, except .well-known
+    @dotFiles {
+      path */.*
+      not path /.well-known/*
+    }
+
+    file_server
+}

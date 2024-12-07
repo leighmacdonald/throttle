@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 if ($argc > 1 && $argv[1] === 'config') {
   echo <<<'EOT'
 multigraph throttle_submitted
