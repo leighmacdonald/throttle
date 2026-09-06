@@ -10,6 +10,7 @@ DB_PASSWORD="${DB_PASSWORD:-throttle}"
 THROTTLE_HOSTNAME="${THROTTLE_HOSTNAME:-localhost}"
 THROTTLE_DEBUG="${THROTTLE_DEBUG:-false}"
 THROTTLE_FORCE_CONFIG="${THROTTLE_FORCE_CONFIG:-1}"
+THROTTLE_ADMINS="${THROTTLE_ADMINS:-}"
 REDIS_HOST_CFG="${REDIS_HOST:-redis}"
 
 export REDIS_HOST="${REDIS_HOST_CFG}"
@@ -22,6 +23,14 @@ if [ ! -f "$APP_ROOT/app/config.php" ] || [ "$THROTTLE_FORCE_CONFIG" = "1" ]; th
 	DEBUG_PHP="false"
 	if [ "$THROTTLE_DEBUG" = "1" ] || [ "$THROTTLE_DEBUG" = "true" ]; then
 		DEBUG_PHP="true"
+	fi
+	# Admin Steam ID64s (comma-separated) -> PHP array literal.
+	ADMINS_PHP=""
+	if [ -n "$THROTTLE_ADMINS" ]; then
+		for id in ${THROTTLE_ADMINS//,/ }; do
+			[ -n "$id" ] && ADMINS_PHP="${ADMINS_PHP}'${id}', "
+		done
+		ADMINS_PHP="${ADMINS_PHP%, }"
 	fi
 	cat >"$APP_ROOT/app/config.php" <<PHP
 <?php
@@ -47,7 +56,7 @@ return array(
     // Caddy reverse-proxy lives in the docker networks below.
     'trusted-proxies' => array('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'),
 
-    'admins' => array(),
+    'admins' => array(${ADMINS_PHP}),
     'developers' => array(),
 
     'apikey' => false,

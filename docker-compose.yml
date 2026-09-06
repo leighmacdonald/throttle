@@ -59,6 +59,7 @@ services:
       THROTTLE_HOSTNAME: ${THROTTLE_HOSTNAME:-localhost}
       THROTTLE_DEBUG: ${THROTTLE_DEBUG:-false}
       THROTTLE_FORCE_CONFIG: ${THROTTLE_FORCE_CONFIG:-1}
+      THROTTLE_ADMINS: ${THROTTLE_ADMINS:-}
       # Where Stats.php finds the munin-compatible RRDs (see `graphs`).
       MUNIN_RRDDIR: /var/lib/munin
       MUNIN_HOST: ${MUNIN_HOST:-throttle}

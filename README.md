@@ -9,7 +9,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Access at http://localhost:8080
+Access at http://localhost:80 (or `:${HTTP_PORT}`)
 
 ## Production with HTTPS (Cloudflare DNS Challenge)
 
@@ -68,6 +68,31 @@ curl -I https://throttle.example.com
 |----------|---------|-------------|
 | `HTTP_PORT` | 80 | Host port for HTTP (ACME redirects, non-HTTPS traffic) |
 | `HTTPS_PORT` | 443 | Host port for HTTPS (when `CF_API_TOKEN` is set) |
+
+## Admin User
+
+Admins can manage/delete any crash report, view all users, etc. Set one or more
+Steam ID64s via `THROTTLE_ADMINS` (comma-separated). The entrypoint writes them
+into the generated `app/config.php` (`admins` array) on container start.
+
+Find your Steam ID64 (a 17-digit number) from your profile URL
+(`steamcommunity.com/id/<name>/profile/?id=7656...`) or via steamid.io.
+
+```env
+THROTTLE_ADMINS=76561198012345678,76561198987654321
+```
+
+Then recreate the app so the config is regenerated:
+
+```bash
+docker compose up -d --force-recreate app
+```
+
+Verify:
+
+```bash
+docker compose exec app grep "'admins'" /var/www/throttle/app/config.php
+```
 
 ## Custom Caddy Image
 
