@@ -5,7 +5,7 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // libphutil provides static functions that can't be autoloaded by Composer
-require_once __DIR__ . '/../vendor/facebook/libphutil/src/__phutil_library_init__.php';
+require_once __DIR__ . '/../vendor/phacility/libphutil/src/__phutil_library_init__.php';
 
 // If libphutil is the last autoloader (Composer prepends, so will never be after it), it throws on missing classes...
 spl_autoload_register(function ($class) {});
@@ -59,7 +59,9 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
 
 $app['redis'] = $app->share(function() use ($app) {
     $redis = new \Redis();
-    $redis->connect('127.0.0.1', 6379, 1);
+    $redisHost = getenv('REDIS_HOST') ?: '127.0.0.1';
+    $redisPort = getenv('REDIS_PORT') ?: 6379;
+    $redis->connect($redisHost, (int)$redisPort, 1);
     return $redis;
 });
 

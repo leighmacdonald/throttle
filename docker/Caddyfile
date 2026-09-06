@@ -1,0 +1,50 @@
+# Caddy configuration with optional Cloudflare DNS challenge for HTTPS.
+# If CF_API_TOKEN is set, Caddy will:
+#   - Listen on ports 80/443
+#   - Provision TLS via Let's Encrypt using the Cloudflare DNS challenge
+#   - Redirect HTTP to HTTPS
+# If CF_API_TOKEN is not set, Caddy serves plain HTTP on port 80 only
+# (the original behavior for local/dev without DNS).
+
+{
+	# Optional: configure ACME CA (default: Let's Encrypt production)
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Cloudflare DNS challenge: requires CF_API_TOKEN env var with
+# "Zone:DNS:Edit" permissions for the domain.
+# When CF_API_TOKEN is set, this block activates and serves HTTPS.
+{$THROTTLE_HOSTNAME} {
+	@cloudflare env CF_API_TOKEN
+	handle @cloudflare {
+		tls {
+			dns cloudflare {$CF_API_TOKEN}
+		}
+		reverse_proxy app:80 {
+			header_up Host {$THROTTLE_HOSTNAME}
+			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
+	# Fallback: no DNS token -> plain HTTP (dev/local)
+	handle {
+		reverse_proxy app:80 {
+			header_up Host {$THROTTLE_HOSTNAME}
+			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+}
+
+# Catch-all for direct IP access or unknown hosts: plain HTTP to app
+:80 {
+	reverse_proxy app:80 {
+		header_up Host {$THROTTLE_HOSTNAME}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+	}
+}

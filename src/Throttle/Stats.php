@@ -281,7 +281,13 @@ class Stats
         }
 
         $metric = str_replace('.', '-', $metric);
-        list($data,) = \execx('/usr/bin/rrdtool graph - --start %s --step %d --imgformat CSV %s %s', $start, $step, 'DEF:value=/var/lib/munin/fennec/fennec-throttle_'.$metric.'-d.rrd:42:AVERAGE', 'LINE1:value#000000:value');
+        // Munin on-disk layout: $rrdDir/$host-throttle_<graph>-<field>-d.rrd
+        // with DS name "42". Env-overridable for docker (MUNIN_RRDDIR,
+        // MUNIN_HOST, RRDTOOL_BIN), legacy bare-metal defaults otherwise.
+        $rrdBin = getenv('RRDTOOL_BIN') ?: '/usr/bin/rrdtool';
+        $rrdDir = rtrim(getenv('MUNIN_RRDDIR') ?: '/var/lib/munin/fennec', '/');
+        $rrdHost = getenv('MUNIN_HOST') ?: 'fennec';
+        list($data,) = \execx($rrdBin.' graph - --start %s --step %d --imgformat CSV %s %s', $start, $step, 'DEF:value='.$rrdDir.'/'.$rrdHost.'-throttle_'.$metric.'-d.rrd:42:AVERAGE', 'LINE1:value#000000:value');
         $data = \phutil_split_lines($data);
         array_shift($data);
         $data = array_map(function($d) use ($step) {

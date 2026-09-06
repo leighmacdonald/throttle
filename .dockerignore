@@ -1,0 +1,8 @@
+.git/
+/vendor/
+/app/config.php
+/cache/*
+/logs/*
+/dumps/*
+/symbols/*
+!/symbols/public/.gitkeep
