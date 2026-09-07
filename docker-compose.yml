@@ -71,10 +71,14 @@ services:
       - cache_data:/var/www/throttle/cache
       # RRD graph data, written by the `graphs` service (read-only here).
       - munin_data:/var/lib/munin:ro
+      # Rendered /munin-graphs/*.png files, written by `graphs` (read-only).
+      # Mounted under DocumentRoot so Apache serves them as static files.
+      - munin_graphs:/var/www/throttle/web/munin-graphs:ro
 
   # Feeds throttle's munin-plugin counters into RRD files every
   # GRAPH_INTERVAL seconds (munin default 300), readable by the app's
-  # /stats/* endpoints. Same image as `app`, different command.
+  # /stats/* endpoints, and renders /munin-graphs/*.png files.
+  # Same image as `app`, different command.
   graphs:
     build: .
     restart: unless-stopped
@@ -97,6 +101,8 @@ services:
     command: ["throttle-graphs.sh"]
     volumes:
       - munin_data:/var/lib/munin
+      # PNG output dir, served by `app` (see above).
+      - munin_graphs:/var/www/throttle/web/munin-graphs
 
   caddy:
     build:
@@ -140,5 +146,6 @@ volumes:
   logs_data:
   cache_data:
   munin_data:
+  munin_graphs:
   caddy_data:
   caddy_config:

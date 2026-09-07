@@ -94,6 +94,28 @@ Verify:
 docker compose exec app grep "'admins'" /var/www/throttle/app/config.php
 ```
 
+## Stats Graphs (`/munin-graphs`)
+
+The "Processing Performance" charts on `/stats` are static PNGs rendered from
+the munin-compatible RRDs — they used to come from an external munin master,
+now rebuilt locally:
+
+1. `graphs` service runs `docker/munin-update.sh` every `GRAPH_INTERVAL`
+   seconds, feeding `munin-plugin` counters into RRDs on the `munin_data`
+   volume (also read by the live Highcharts `/stats/*` endpoints).
+2. It then runs `docker/munin-graph.sh`, which renders the 8 PNGs
+   (`submitted-day/week`, `processed-week`, `processingtime-week`,
+   `cleaned-week`, `symbols_pct-week`, `symbols_coverage-week/year`) with
+   `rrdtool graph` into the `munin_graphs` volume.
+3. `app` mounts that volume read-only at `web/munin-graphs`, so Apache serves
+   them as static files before the `index.php` rewrite.
+
+Note: `symbols_pct` / `symbols_coverage` have no counterpart in
+`./munin-plugin` (their definitions lived on the retired munin master), so
+they use local definitions — see the header of `docker/munin-graph.sh`.
+Fresh installs render mostly-empty axes until a few update passes accumulate
+data (up to ~2h for DERIVE rates to settle).
+
 ## Custom Caddy Image
 
 The `docker/Dockerfile.caddy` builds a Caddy binary with the Cloudflare DNS provider plugin using `xcaddy`. This image is built automatically by docker-compose.

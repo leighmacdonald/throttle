@@ -60,10 +60,12 @@ COPY docker/php-throttle.ini /usr/local/etc/php/conf.d/throttle.ini
 # Entrypoint generates app/config.php from env, waits for db/redis,
 # runs migrations, fixes perms, then starts Apache.
 COPY docker/docker-entrypoint.sh /usr/local/bin/throttle-entrypoint.sh
-# RRD graph updater (munin-plugin -> munin-compatible .rrd files).
+# RRD graph updater (munin-plugin -> munin-compatible .rrd files)
+# + PNG renderer (RRDs -> web/munin-graphs/*.png for /munin-graphs URLs).
 COPY docker/munin-update.sh /usr/local/bin/munin-update.sh
+COPY docker/munin-graph.sh /usr/local/bin/munin-graph.sh
 COPY docker/throttle-graphs.sh /usr/local/bin/throttle-graphs.sh
-RUN chmod +x /usr/local/bin/throttle-entrypoint.sh /usr/local/bin/munin-update.sh /usr/local/bin/throttle-graphs.sh
+RUN chmod +x /usr/local/bin/throttle-entrypoint.sh /usr/local/bin/munin-update.sh /usr/local/bin/munin-graph.sh /usr/local/bin/throttle-graphs.sh
 
 EXPOSE 80
 
